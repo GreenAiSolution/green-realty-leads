@@ -20,7 +20,7 @@ Env:
 """
 from __future__ import annotations
 import csv, datetime, html, io, json, os, re, sqlite3, ssl, statistics, threading, time
-import urllib.parse, urllib.request
+import urllib.error, urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -66,9 +66,13 @@ def http_get(url: str, timeout: int = 40) -> bytes:
 def http_post_json(url: str, body: dict, headers: dict, timeout: int = 20) -> dict:
     data = json.dumps(body).encode()
     req = urllib.request.Request(url, data=data, method="POST",
-                                 headers={"Content-Type": "application/json", **headers})
-    with urllib.request.urlopen(req, timeout=timeout, context=SSL_CTX) as r:
-        return json.loads(r.read() or b"{}")
+                                 headers={"Content-Type": "application/json",
+                                          "User-Agent": "green-realty-leads/1.0 (+https://greenaidigital.com)", **headers})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout, context=SSL_CTX) as r:
+            return json.loads(r.read() or b"{}")
+    except urllib.error.HTTPError as e:      # surface the API's reason, not just the status
+        raise RuntimeError(f"HTTP {e.code}: {e.read()[:300]!r}") from None
 
 # ------------------------------------------------------------------ county
 def _num(v):
