@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leads — {{SITE_NAME}}</title>
+<style>
+ body{background:#0b1410;color:#eef5f0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;margin:0;padding:24px}
+ h1{font-size:22px;margin:0 0 6px}.mute{color:#94a89c}.k{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+ .k div{background:#101c16;border:1px solid #1f3328;border-radius:12px;padding:12px 16px}.k b{display:block;font-size:26px;color:#3ddc84}
+ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px;border-bottom:1px solid #1f3328;vertical-align:top}
+ th{color:#94a89c;font-weight:600;font-size:12px}a{color:#3ddc84}
+ .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+ .btn{background:#3ddc84;color:#04120a;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
+</style></head><body>
+<div class="top"><div><h1>{{SITE_NAME}} — leads</h1><div class="mute">Newest first. Tap a number to call.</div></div>
+<a class="btn" href="/leads?key={{KEY}}&format=csv">Download CSV</a></div>
+<div class="k"><div><b>{{N_LEADS}}</b>leads</div><div><b>{{N_LOOKUPS}}</b>address lookups</div><div><b>{{N_FOUND}}</b>found in county</div><div><b style="font-size:16px;margin-top:6px">{{SOURCES}}</b>leads by source</div></div>
+<table><thead><tr><th>#</th><th>When (UTC)</th><th>Who</th><th>Property</th><th>Estimate</th><th>Intent</th><th>Source</th><th>Consent</th></tr></thead>
+<tbody>{{ROWS}}</tbody></table>
+</body></html>

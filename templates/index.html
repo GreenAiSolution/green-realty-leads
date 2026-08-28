@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What's your Phoenix home worth? — {{SITE_NAME}}</title>
+<meta name="description" content="Instant home value for any Maricopa County address, priced from real closed sales in county records. Free, no listing required.">
+<style>
+  :root{--bg:#0b1410;--card:#101c16;--line:#1f3328;--ink:#eef5f0;--mute:#94a89c;--green:#3ddc84;--green-2:#1f9d5c;--amber:#f5c451}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+  a{color:var(--green)}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px 60px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+  .brand{font-weight:800;letter-spacing:.02em}.brand span{color:var(--green)}
+  .pill{font-size:12px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+  h1{font-size:clamp(34px,6vw,54px);line-height:1.05;font-weight:850;letter-spacing:-.02em;margin-bottom:14px}
+  h1 em{color:var(--green);font-style:normal}
+  .lede{color:var(--mute);font-size:18px;margin-bottom:28px;max-width:560px}
+  form.addr{display:flex;gap:10px;flex-wrap:wrap}
+  form.addr input{flex:1 1 320px;font-size:18px;padding:16px 18px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);outline:none}
+  form.addr input:focus{border-color:var(--green)}
+  .btn{font-size:17px;font-weight:700;padding:16px 24px;border-radius:14px;border:0;background:var(--green);color:#04120a;cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .hint{color:var(--mute);font-size:13px;margin-top:10px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:44px 0 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .stat b{display:block;font-size:28px;font-weight:850;color:var(--green)}
+  .stat small{color:var(--mute)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px;margin-top:28px}
+  .card.hidden,.hidden{display:none}
+  .addrline{color:var(--mute);font-size:14px;margin-bottom:6px}
+  .big{font-size:clamp(38px,8vw,64px);font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--green)}
+  .range{color:var(--mute);margin-top:6px}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:20px}
+  .facts div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .facts b{display:block;font-size:20px}.facts small{color:var(--mute)}
+  .lock{margin-top:22px;padding:18px;border-radius:14px;border:1px dashed var(--green-2);background:#0d1a13}
+  .lock h3{font-size:20px;margin-bottom:6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .grid input,.grid select{width:100%;font-size:16px;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+  .grid .full{grid-column:1/-1}
+  label.consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mute);margin-top:12px}
+  label.consent input{margin-top:3px}
+  .err{color:var(--amber);margin-top:10px;font-size:14px}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:15px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--mute);font-weight:600;font-size:13px}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .ok{color:var(--green);font-weight:700}
+  footer{margin-top:60px;color:var(--mute);font-size:12px;line-height:1.6}
+  @media (max-width:520px){.stats{grid-template-columns:1fr 1fr 1fr}.stat b{font-size:22px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Green<span>Realty</span></div>
+    <div class="pill">Maricopa County · public records</div>
+  </header>
+
+  <h1>What's your Phoenix home <em>actually</em> worth?</h1>
+  <p class="lede">Type your address. We price it against every house that closed near you in the last 12 months — straight from county records, not a guess.</p>
+
+  <form class="addr" id="f">
+    <input id="addr" placeholder="4525 E Cactus Rd, Phoenix 85032" autocomplete="street-address" required>
+    <button class="btn" id="go" type="submit">Get my value</button>
+  </form>
+  <div class="hint">Free. Takes 5 seconds. Works for any address in Maricopa County.</div>
+  <div class="err hidden" id="err1"></div>
+
+  <div class="stats" id="stats">
+    <div class="stat"><b>12 mo</b><small>of real closed sales</small></div>
+    <div class="stat"><b>$0</b><small>no fee, no listing</small></div>
+    <div class="stat"><b>5 sec</b><small>to a number</small></div>
+  </div>
+
+  <!-- result -->
+  <div class="card hidden" id="result">
+    <div class="addrline" id="r-addr"></div>
+    <div class="big" id="r-point"></div>
+    <div class="range" id="r-range"></div>
+    <div class="facts" id="r-facts"></div>
+    <div class="err hidden" id="r-noest"></div>
+
+    <div class="lock" id="lock">
+      <h3>Want the 5 sales that set this number?</h3>
+      <p style="color:var(--mute);font-size:14px">The full report shows each comparable sale — address, size, price, date — and what that means for your timing. Sent to you, no obligation.</p>
+      <form id="lead">
+        <div class="grid">
+          <input id="name" placeholder="Your name" required>
+          <input id="phone" placeholder="Mobile number" type="tel" required>
+          <input id="email" class="full" placeholder="Email" type="email" required>
+          <select id="intent">
+            <option value="curious">Just curious what it's worth</option>
+            <option value="sell">Thinking about selling</option>
+            <option value="buy-sell">Selling and buying</option>
+            <option value="refi">Refinance / equity</option>
+            <option value="invest">Investor / rental</option>
+          </select>
+          <select id="timeline">
+            <option value="0-3mo">In the next 3 months</option>
+            <option value="3-6mo">3–6 months</option>
+            <option value="6-12mo">6–12 months</option>
+            <option value="someday">No timeline</option>
+          </select>
+        </div>
+        <label class="consent"><input type="checkbox" id="consent" required>
+          <span>Yes — send my report and contact me by call, text or email about my home's value. Message and data rates may apply. Reply STOP to opt out. Consent isn't required to buy anything.</span></label>
+        <div class="err hidden" id="err2"></div>
+        <button class="btn" id="send" type="submit" style="margin-top:14px;width:100%">Send me the full report</button>
+      </form>
+    </div>
+
+    <div class="hidden" id="report">
+      <p class="ok">✓ Report unlocked. A copy is on its way to your inbox.</p>
+      <table><thead><tr><th>Comparable sale</th><th class="n">Sq ft</th><th class="n">Sold for</th><th class="n">$/sqft</th><th class="n">Closed</th></tr></thead>
+      <tbody id="comps"></tbody></table>
+      <p style="color:var(--mute);font-size:14px;margin-top:14px" id="r-summary"></p>
+      <p style="margin-top:16px">Want to know what a pre-list touch-up would add, or when the best month to list is? <b>Jaden will text you</b> — reply with a good time.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>{{DISCLOSURE}}</p>
+    <p style="margin-top:8px">© {{YEAR}} {{SITE_NAME}} · Phoenix, AZ</p>
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const src = new URLSearchParams(location.search).get('src') || document.referrer.replace(/^https?:\/\//,'').split('/')[0] || 'direct';
+const money = n => '$' + Math.round(n).toLocaleString();
+let subject = null, est = null;
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('err1').classList.add('hidden'); $('go').disabled = true; $('go').textContent = 'Checking county records…';
+  try {
+    const r = await fetch('/api/lookup', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({address: $('addr').value, source: src})});
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'Something went wrong.');
+    subject = j.subject; est = j.estimate;
+    $('r-addr').textContent = subject.address + (subject.city ? ', ' + subject.city : '') + ' ' + subject.zip;
+    if (est.ok) {
+      $('r-point').textContent = money(est.point);
+      $('r-range').textContent = 'Likely range ' + money(est.low) + ' – ' + money(est.high) + ' · based on ' + est.n_sales + ' similar sales in ' + subject.zip + ' at ~$' + est.ppsf + '/sqft';
+      $('r-noest').classList.add('hidden'); $('lock').classList.remove('hidden');
+    } else {
+      $('r-point').textContent = '—'; $('r-range').textContent = '';
+      $('r-noest').textContent = est.reason + ' Leave your details and Jaden will price it by hand.'; $('r-noest').classList.remove('hidden');
+      $('lock').classList.remove('hidden');
+    }
+    const facts = [];
+    if (subject.sqft) facts.push(['Living area', subject.sqft.toLocaleString() + ' sqft']);
+    if (subject.year_built) facts.push(['Built', subject.year_built]);
+    if (subject.lot_sqft) facts.push(['Lot', subject.lot_sqft.toLocaleString() + ' sqft']);
+    if (subject.last_sale_price && subject.last_sale_price > 25000) facts.push(['Last sold', money(subject.last_sale_price) + (subject.last_sale_date ? ' · ' + subject.last_sale_date.slice(0,4) : '')]);
+    if (subject.assessor_fcv) facts.push(['Assessor value', money(subject.assessor_fcv)]);
+    $('r-facts').innerHTML = facts.map(([k,v]) => `<div><b>${v}</b><small>${k}</small></div>`).join('');
+    $('result').classList.remove('hidden'); $('report').classList.add('hidden'); $('stats').classList.add('hidden');
+    $('result').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch (e) { $('err1').textContent = e.message; $('err1').classList.remove('hidden'); }
+  $('go').disabled = false; $('go').textContent = 'Get my value';
+});
+
+$('lead').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('err2').classList.add('hidden'); $('send').disabled = true; $('send').textContent = 'Sending…';
+  try {
+    const body = {name: $('name').value, phone: $('phone').value, email: $('email').value, intent: $('intent').value, timeline: $('timeline').value,
+      consent: $('consent').checked, address: $('r-addr').textContent, apn: subject.apn, zip: subject.zip, sqft: subject.sqft, year_built: subject.year_built,
+      estimate_low: est.ok ? est.low : null, estimate_point: est.ok ? est.point : null, estimate_high: est.ok ? est.high : null, source: src};
+    const r = await fetch('/api/lead', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'Something went wrong.');
+    $('comps').innerHTML = j.comps.map(c => `<tr><td>${c.address}${c.year_built ? '<br><small style="color:var(--mute)">built ' + c.year_built + '</small>' : ''}</td><td class="n">${c.sqft.toLocaleString()}</td><td class="n">${money(c.price)}</td><td class="n">$${c.ppsf}</td><td class="n">${c.date}</td></tr>`).join('')
+      || '<tr><td colspan="5" style="color:var(--mute)">Not enough recent sales nearby to show comparables — Jaden will price this one by hand.</td></tr>';
+    if (est.ok) $('r-summary').textContent = `${est.n_zip_sales} houses closed in ${subject.zip} in the last 12 months. Your home sits at ${money(est.point)} on the median of the ${est.n_sales} most similar. Real condition, upgrades and timing move that number — that's the conversation.`;
+    $('lock').classList.add('hidden'); $('report').classList.remove('hidden');
+    $('report').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch (e) { $('err2').textContent = e.message; $('err2').classList.remove('hidden'); }
+  $('send').disabled = false; $('send').textContent = 'Send me the full report';
+});
+</script>
+</body>
+</html>
